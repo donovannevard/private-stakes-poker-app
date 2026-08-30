@@ -1,0 +1,76 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-lightning_poker}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lightning_poker}
+      POSTGRES_DB: ${POSTGRES_DB:-lightning_poker}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER:-lightning_poker}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: pnpm --filter @lightning-poker/backend dev
+    restart: unless-stopped
+    environment:
+      # In-network hostname, not `localhost` — deliberately not read from
+      # .env, which points at the port docker-compose maps to the *host*.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-lightning_poker}:${POSTGRES_PASSWORD:-lightning_poker}@postgres:5432/${POSTGRES_DB:-lightning_poker}
+      COOKIE_SECRET: ${COOKIE_SECRET:-dev-only-insecure-secret-change-me}
+      ACCESS_CODE: ${ACCESS_CODE:-}
+      PORT: 3000
+    ports:
+      - '${BACKEND_PORT:-3000}:3000'
+    volumes:
+      - .:/app
+      # Source is bind-mounted whole above, which would otherwise shadow
+      # every package's node_modules with whatever's on the host — these
+      # anonymous volumes take precedence over that one path each,
+      # preserving the Linux-native install done in Dockerfile.dev instead.
+      - /app/node_modules
+      - /app/backend/node_modules
+      - /app/frontend/node_modules
+      - /app/database/node_modules
+      - /app/game-engine/node_modules
+      - /app/settlement/node_modules
+      - /app/shared/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: pnpm --filter @lightning-poker/frontend dev
+    restart: unless-stopped
+    environment:
+      # Read by frontend/src/lib/api.ts + socket.ts — must match BACKEND_PORT
+      # below so the client actually reaches the backend on its mapped port.
+      VITE_BACKEND_PORT: ${BACKEND_PORT:-3000}
+    ports:
+      - '${FRONTEND_PORT:-5173}:5173'
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/backend/node_modules
+      - /app/frontend/node_modules
+      - /app/database/node_modules
+      - /app/game-engine/node_modules
+      - /app/settlement/node_modules
+      - /app/shared/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

@@ -1,0 +1,79 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// A live table. Rows here (and their players/currentHand) exist only while
+// the table is occupied — deleted the moment the roster empties out, to keep
+// this a "current state" store rather than a growing history log.
+model PersistedTable {
+  id                 String   @id
+  gameType           String
+  maxSeats           Int
+  smallBlind         Int
+  bigBlind           Int
+  startingStack      Int
+  turnTimeoutSeconds Int?
+  botSkill           Int
+  buttonIndex        Int
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  players     PersistedPlayer[]
+  currentHand PersistedHand?
+}
+
+// One row per seated player, per table. Stats accumulate for as long as the
+// table exists — scoped to this table only, no identity across sessions.
+model PersistedPlayer {
+  id                String         @id @default(uuid())
+  table             PersistedTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  tableId           String
+  playerId          String
+  nickname          String
+  isBot             Boolean
+  stack             Int
+  joinOrder         Int
+  handsPlayed       Int            @default(0)
+  handsWon          Int            @default(0)
+  handsFolded       Int            @default(0)
+  // Not a secret (like an email address) — safe to persist. LNbits API keys
+  // are deliberately NOT persisted; see RosterEntry.lnbits in table-manager.ts.
+  lightningAddress  String?
+
+  @@unique([tableId, playerId])
+}
+
+// At most one row per table: the hand currently in progress, enough to
+// deterministically replay it (seed + starting players + action log so far).
+// Deleted the instant the hand completes — settled hands are never kept.
+model PersistedHand {
+  id        String         @id @default(uuid())
+  table     PersistedTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  tableId   String         @unique
+  seed      String
+  players   Json
+  actionLog Json
+  updatedAt DateTime       @updatedAt
+}
+
+// One row per completed hand, kept forever (no relation/cascade to
+// PersistedTable — must outlive the table itself). This is the durable
+// audit trail PersistedHand deliberately isn't: seed + players + actionLog
+// is enough to deterministically replay the exact hand via
+// game-engine's replay support, for dispute resolution.
+model HandHistory {
+  id          String   @id @default(uuid())
+  tableId     String
+  seed        String
+  players     Json
+  actionLog   Json
+  winners     Json?
+  completedAt DateTime @default(now())
+
+  @@index([tableId])
+}

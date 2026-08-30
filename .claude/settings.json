@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm --filter @lightning-poker/frontend exec vitest run src/components/ActionControls.test.tsx src/components/HomeScreen.test.tsx)",
+      "Bash(pnpm --filter @lightning-poker/frontend exec vitest run src/components/PlayerSeat.test.tsx src/components/PokerTable.test.tsx)",
+      "Bash(pnpm --filter @lightning-poker/shared build)",
+      "Bash(pnpm --filter @lightning-poker/backend build)",
+      "Bash(pnpm --filter @lightning-poker/backend exec vitest run src/table-manager.test.ts)",
+      "Bash(pnpm --filter @lightning-poker/backend exec vitest run)",
+      "Bash(pnpm --filter @lightning-poker/frontend exec vitest run)",
+      "Bash(pnpm --filter @lightning-poker/frontend typecheck)",
+      "Bash(pnpm --filter @lightning-poker/frontend exec vitest run src/App.test.tsx src/lib/socket.test.ts)",
+      "Bash(pnpm --filter @lightning-poker/frontend exec vitest run src/App.test.tsx)",
+      "Bash(pnpm --filter @lightning-poker/frontend exec vitest run src/components/Header.test.tsx src/components/Sidebar.test.tsx)",
+      "Bash(pnpm -r build)",
+      "Bash(pnpm -r test)",
+      "Bash(pnpm lint *)",
+      "Bash(pnpm -r typecheck)",
+      "Bash(pnpm format:check)",
+      "Bash(pnpm exec *)",
+      "Bash(docker compose *)",
+      "Bash(npx --yes playwright install chromium --with-deps)",
+      "Bash(npx --yes playwright install chromium)",
+      "Bash(node check.mjs)",
+      "Bash(node check2.mjs)",
+      "Bash(node check3.mjs)",
+      "Bash(lsof -nP -iTCP:3000 -sTCP:LISTEN)",
+      "Bash(lsof -nP -iTCP:5173 -sTCP:LISTEN)",
+      "Bash(pnpm --filter @lightning-poker/game-engine build)",
+      "Bash(pnpm --filter @lightning-poker/game-engine exec vitest run)",
+      "Bash(pnpm --filter @lightning-poker/frontend exec vitest run src/components/ActionControls.test.tsx)",
+      "Bash(pnpm --filter @lightning-poker/frontend exec vitest run src/components/PlayingCard.test.tsx)",
+      "Bash(pnpm --filter @lightning-poker/frontend exec vitest run src/components/PlayerSeat.test.tsx)",
+      "Bash(pnpm --filter @lightning-poker/frontend exec vitest run src/components/PokerTable.test.tsx src/components/EmptySeat.test.tsx)",
+      "Bash(pnpm --filter @lightning-poker/shared exec vitest run)",
+      "Bash(pnpm --filter @lightning-poker/backend exec vitest run src/ws-validation.test.ts)",
+      "Bash(pnpm --filter @lightning-poker/frontend exec vitest run src/components/HomeScreen.test.tsx)"
+    ]
+  }
+}

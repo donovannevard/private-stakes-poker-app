@@ -1,0 +1,11 @@
+node_modules
+dist
+.env
+.env.local
+coverage
+*.log
+*.tsbuildinfo
+.DS_Store
+.direnv/
+.pnpm-store/
+.claude/settings.local.json
